@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain
+namespace Domain.Entities
 {
     public class User : Person
     {
@@ -19,8 +19,8 @@ namespace Domain
             : base(nombre,apellido,edad,telefono) 
         { 
             Id++;
-            this.Email = email;
-            this.Password = contraseña;
+            Email = email;
+            Password = contraseña;
             IsAdmin = false;
 
         }
