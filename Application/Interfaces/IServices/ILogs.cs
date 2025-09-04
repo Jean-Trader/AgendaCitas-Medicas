@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Application.Interfaces.IServices
 {
-    public interface ILogs<T>
+    public interface ILogs
     {
       void logInfo(string message);
-      void logWard(string message);
+      void logWarn(string message);
       void logError(string message);
     }
 }

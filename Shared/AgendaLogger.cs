@@ -5,26 +5,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+
 namespace Shared
 {
-    public class AgendaLogger<T> : ILogs<T>
+    public class AgendaLogger : ILogs
     {
-        ILogs<AgendaLogger<T>> _logger;
-        public AgendaLogger(ILogs<AgendaLogger<T>> logger) 
+        private readonly ILogger<AgendaLogger> _logger;
+        public AgendaLogger(ILogger<AgendaLogger> logger) 
         { 
         _logger = logger;
         }
         public void logInfo(string message)
         {
-           
+           _logger.LogInformation($"{DateTime.Now} INFO: {message}");
         }
-        public void logWard(string message)
+        public void logWarn(string message)
         {
-          
+          _logger.LogWarning($"{DateTime.Now} WARN: {message}");
         }
         public void logError(string message)
         {
-           
+           _logger.LogError($"{DateTime.Now} ERROR: {message}");
         }
     }
 }

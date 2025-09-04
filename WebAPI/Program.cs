@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Application.Interfaces.IServices;
 using Serilog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 
 using Shared;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +22,12 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/agenda_log.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
-builder.Services.AddScoped<ILogger<AgendaLogger<T>>;
+builder.Host.UseSerilog();
+
+builder.Services.AddScoped<ILogs, AgendaLogger>();
+
+builder.Services.AddScoped<>();
+
 
 
 var app = builder.Build();

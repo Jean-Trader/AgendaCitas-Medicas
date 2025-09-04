@@ -1,25 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Application.Interfaces.IRepositories;
 using Application.Interfaces.IServices;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.Logging;
 namespace Persistencia.Repositories
 {
     public class AgendaCitasRepo<T> : IAgendaRepo<T> where T : class
     {
         private readonly DbContext.AgendaCitasDbContext _context;
         private readonly DbSet<T> _dbSet;
-        private ILogs<AgendaCitasRepo<T>> Logger_;
+        private ILogs _Logger;
 
-        public AgendaCitasRepo(DbContext.AgendaCitasDbContext context, ILogs<AgendaCitasRepo<T>> logger)
+        public AgendaCitasRepo(DbContext.AgendaCitasDbContext context, ILogs logger)
         {
             _context = context;
             _dbSet = _context.Set<T>();
-            Logger_ = logger;
+            _Logger = logger;
         }
         public async Task<T> Add(T entity)
         {
@@ -27,13 +29,13 @@ namespace Persistencia.Repositories
             {
                 _dbSet.Add(entity);
                 await _context.SaveChangesAsync();
-                Logger_.logInfo($"{entity.GetType} añadido correctamente", DateTime.Now);
+                
                 return entity;
                 
             }
             catch (DbUpdateException ex)
             {
-                return null;
+                throw new Shared.RepositoryExeption($"Error al agrega a la base de datos", ex) ;
             }
         }
         public async Task<bool> Delete(T entity)
@@ -41,12 +43,14 @@ namespace Persistencia.Repositories
             try { 
                 _dbSet.Remove(entity);
                 await _context.SaveChangesAsync();
-                Logger_.logInfo($"{entity.GetType} eliminado correctamente", DateTime.Now);
+               
                 return true;
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-                return false;
+                _Logger.logError($"Error al eliminar de la base de datos: {ex.Message}");
+                throw new Shared.RepositoryExeption($"Error al eliminar de la base de datos", ex);
+                
             }
 
         }
@@ -54,31 +58,32 @@ namespace Persistencia.Repositories
         {
             try { 
 
-                Logger_.logInfo($"Obteniendo todos los registros de {typeof(T)}", DateTime.Now);
+               
                 return await _dbSet.ToListAsync();
 
             }
             catch (DbUpdateException ex)
             {
-                return null;
+               throw new Shared.RepositoryExeption("Error al obtener todas las entidades", ex);
+               _Logger.logError($"Error al obtener todas las entidades: {ex.Message}");
             }
 
         }
         public async Task<T> GetById(int id)
         {
             try 
-            { 
-                Logger_.logInfo($"Obteniendo {typeof(T)} con ID: {id}", DateTime.Now);
-                return await _dbSet.FindAsync(id);
-            }
-            catch (Exception ex)
             {
-                return null;
+                return await _dbSet.FindAsync(id); 
+            }
+            catch (SqlException ex)
+            {
+              _Logger.logError($"Error al obtener la entidad por ID: {ex.Message}");
+                throw new Shared.RepositoryExeption($"Error al obtener la entidad por ID", ex);
             }
         }
         public async Task SaveAsync()
         {
-            Logger_.logInfo($"Guardando cambios en la base de datos para {typeof(T)}", DateTime.Now);       
+                 
             await _context.SaveChangesAsync();
 
         }
@@ -88,13 +93,14 @@ namespace Persistencia.Repositories
             { 
               _context.Update(entity);
               await _context.SaveChangesAsync();
-                Logger_.logInfo($"{entity.GetType} actualizado correctamente", DateTime.Now);
+                
                 return entity;
 
-            } catch (Exception ex)
+            } catch (DbUpdateException ex)
             {
+                _Logger.logError($"Error al actualizar la entidad: {ex.Message}");
+                throw new Shared.RepositoryExeption($"Error al aplicar cambios en la base de datos", ex);
                 
-                return null;
             }
         }
     }
