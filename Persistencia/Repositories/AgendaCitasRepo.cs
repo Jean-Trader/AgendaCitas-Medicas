@@ -64,8 +64,9 @@ namespace Persistencia.Repositories
             }
             catch (DbUpdateException ex)
             {
-               throw new Shared.RepositoryExeption("Error al obtener todas las entidades", ex);
-               _Logger.logError($"Error al obtener todas las entidades: {ex.Message}");
+                _Logger.logError($"Error al obtener todas las entidades: {ex.Message}");
+                throw new Shared.RepositoryExeption("Error al obtener todas las entidades", ex);
+               
             }
 
         }
